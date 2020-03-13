@@ -1,0 +1,5 @@
+* Pins, etc
+** Switch Open/Closed
+   Must be pulled low (ugh), are driven high by the switch.
+** Sensor Open/Closed
+   Must be pulled high (yay!), are driven low by sensors.
