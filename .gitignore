@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# KiCAD, everything but the essentials
+kicad/*
+!kicad/cat-door.pro
+!kicad/cat-door.sch
+!kicad/cat-door.kicad_pcb
