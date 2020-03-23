@@ -35,21 +35,6 @@ F 3 "" H 2250 1250 50  0001 C CNN
 	1    2250 1250
 	1    0    0    -1  
 $EndComp
-$Comp
-L Device:R R3
-U 1 1 5E71D3B2
-P 3200 2750
-F 0 "R3" V 2993 2750 50  0000 C CNN
-F 1 "10k" V 3084 2750 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 3130 2750 50  0001 C CNN
-F 3 "~" H 3200 2750 50  0001 C CNN
-	1    3200 2750
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	2850 2750 3050 2750
-Wire Wire Line
-	3350 2750 3450 2750
 Wire Wire Line
 	3450 2750 3450 2600
 $Comp
@@ -75,36 +60,25 @@ F 3 "" H 2250 3050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x02 JPOWER1
-U 1 1 5E71E80C
-P 5700 900
-F 0 "JPOWER1" H 5780 892 50  0000 L CNN
-F 1 "Conn_01x02" H 5780 801 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 5700 900 50  0001 C CNN
-F 3 "~" H 5700 900 50  0001 C CNN
-	1    5700 900 
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR017
 U 1 1 5E71F986
-P 5500 1000
-F 0 "#PWR017" H 5500 750 50  0001 C CNN
-F 1 "GND" H 5505 827 50  0000 C CNN
-F 2 "" H 5500 1000 50  0001 C CNN
-F 3 "" H 5500 1000 50  0001 C CNN
-	1    5500 1000
+P 5750 1100
+F 0 "#PWR017" H 5750 850 50  0001 C CNN
+F 1 "GND" H 5755 927 50  0000 C CNN
+F 2 "" H 5750 1100 50  0001 C CNN
+F 3 "" H 5750 1100 50  0001 C CNN
+	1    5750 1100
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:+9V #PWR016
 U 1 1 5E71FEBD
-P 5500 900
-F 0 "#PWR016" H 5500 750 50  0001 C CNN
-F 1 "+9V" H 5515 1073 50  0000 C CNN
-F 2 "" H 5500 900 50  0001 C CNN
-F 3 "" H 5500 900 50  0001 C CNN
-	1    5500 900 
+P 5750 900
+F 0 "#PWR016" H 5750 750 50  0001 C CNN
+F 1 "+9V" H 5765 1073 50  0000 C CNN
+F 2 "" H 5750 900 50  0001 C CNN
+F 3 "" H 5750 900 50  0001 C CNN
+	1    5750 900 
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -391,8 +365,6 @@ F 3 "" H 4200 1350 50  0001 C CNN
 	1    4200 1350
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	3450 1550 3600 1550
 $Comp
 L Device:R R4
 U 1 1 5E73FF5C
@@ -459,22 +431,12 @@ Text Label 2850 1750 0    50   ~ 0
 outer_up_o
 Text Label 2850 1850 0    50   ~ 0
 outer_down_o
-Wire Wire Line
-	3400 1650 3400 1950
-Wire Wire Line
-	3400 1950 2850 1950
-Wire Wire Line
-	2850 2050 3450 2050
-Wire Wire Line
-	3450 2050 3450 1550
 Text Label 2850 2150 0    50   ~ 0
 sens_open_i
 Text Label 2850 2250 0    50   ~ 0
 sens_closed_i
 Wire Wire Line
 	3600 1750 3600 1550
-Wire Wire Line
-	3400 1650 3900 1650
 Text Label 2850 1550 0    50   ~ 0
 inner_up_o
 Text Label 1200 4400 0    50   ~ 0
@@ -488,12 +450,12 @@ outer_down_o
 $Comp
 L Connector_Generic:Conn_01x05 JOUTER1
 U 1 1 5E75BFF6
-P 3650 4900
-F 0 "JOUTER1" H 3730 4942 50  0000 L CNN
-F 1 "Conn_01x05" H 3730 4851 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical" H 3650 4900 50  0001 C CNN
-F 3 "~" H 3650 4900 50  0001 C CNN
-	1    3650 4900
+P 3650 5200
+F 0 "JOUTER1" H 3730 5242 50  0000 L CNN
+F 1 "Conn_01x05" H 3730 5151 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical" H 3650 5200 50  0001 C CNN
+F 3 "~" H 3650 5200 50  0001 C CNN
+	1    3650 5200
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -505,23 +467,23 @@ Wire Wire Line
 Wire Wire Line
 	2900 5100 3450 5100
 Wire Wire Line
-	3450 4900 3000 4900
+	3450 5200 2950 5200
 Wire Wire Line
-	3000 4900 3000 5150
+	2950 5200 2950 5500
 $Comp
 L power:GND #PWR08
 U 1 1 5E7610FA
-P 3000 5150
-F 0 "#PWR08" H 3000 4900 50  0001 C CNN
-F 1 "GND" H 3005 4977 50  0000 C CNN
-F 2 "" H 3000 5150 50  0001 C CNN
-F 3 "" H 3000 5150 50  0001 C CNN
-	1    3000 5150
+P 2950 5500
+F 0 "#PWR08" H 2950 5250 50  0001 C CNN
+F 1 "GND" H 2955 5327 50  0000 C CNN
+F 2 "" H 2950 5500 50  0001 C CNN
+F 3 "" H 2950 5500 50  0001 C CNN
+	1    2950 5500
 	1    0    0    -1  
 $EndComp
-Text Label 3450 4700 2    50   ~ 0
+Text Label 3450 5400 2    50   ~ 0
 sens_open_i
-Text Label 3450 4800 2    50   ~ 0
+Text Label 3450 5300 2    50   ~ 0
 sens_closed_i
 $Comp
 L power:+5V #PWR0101
@@ -573,4 +535,30 @@ F 3 "~" H 3750 1050 50  0001 C CNN
 	1    3750 1050
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector:Barrel_Jack_Switch J1
+U 1 1 5E784CCE
+P 6050 1000
+F 0 "J1" H 5820 1042 50  0000 R CNN
+F 1 "Barrel_Jack_Switch" H 5820 951 50  0000 R CNN
+F 2 "Cat Door:CUI_PJ-044AH" H 6100 960 50  0001 C CNN
+F 3 "~" H 6100 960 50  0001 C CNN
+	1    6050 1000
+	-1   0    0    -1  
+$EndComp
+NoConn ~ 5750 1000
+Wire Wire Line
+	2850 2050 3450 2050
+Wire Wire Line
+	3400 1950 2850 1950
+Wire Wire Line
+	3400 1550 3600 1550
+Wire Wire Line
+	3450 1650 3900 1650
+Wire Wire Line
+	3400 1550 3400 1950
+Wire Wire Line
+	3450 2050 3450 1650
+Wire Wire Line
+	2850 2750 3450 2750
 $EndSCHEMATC

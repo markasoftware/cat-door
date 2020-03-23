@@ -56,3 +56,4 @@ kicad/*
 !kicad/cat-door.pro
 !kicad/cat-door.sch
 !kicad/cat-door.kicad_pcb
+!kicad/cat-door.pretty
