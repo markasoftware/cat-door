@@ -318,7 +318,7 @@ U 1 1 5E735F52
 P 3650 4400
 F 0 "JPENCIL1" H 3730 4392 50  0000 L CNN
 F 1 "Conn_01x02" H 3730 4301 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 3650 4400 50  0001 C CNN
+F 2 "Connector_Molex:Molex_KK-396_A-41791-0002_1x02_P3.96mm_Vertical" H 3650 4400 50  0001 C CNN
 F 3 "~" H 3650 4400 50  0001 C CNN
 	1    3650 4400
 	1    0    0    -1  
@@ -417,8 +417,6 @@ F 3 "" H 3600 2050 50  0001 C CNN
 	1    3600 2050
 	1    0    0    -1  
 $EndComp
-NoConn ~ 2850 2550
-NoConn ~ 2850 2450
 Text Label 2850 1950 0    50   ~ 0
 sw_open_i
 Text Label 2850 2050 0    50   ~ 0
@@ -561,4 +559,22 @@ Wire Wire Line
 	3450 2050 3450 1650
 Wire Wire Line
 	2850 2750 3450 2750
+Wire Wire Line
+	2850 2450 2850 2550
+Wire Wire Line
+	2850 2550 3150 2550
+Wire Wire Line
+	3150 2550 3150 2850
+Connection ~ 2850 2550
+$Comp
+L power:GND #PWR?
+U 1 1 5E7D4895
+P 3150 2850
+F 0 "#PWR?" H 3150 2600 50  0001 C CNN
+F 1 "GND" H 3155 2677 50  0000 C CNN
+F 2 "" H 3150 2850 50  0001 C CNN
+F 3 "" H 3150 2850 50  0001 C CNN
+	1    3150 2850
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
