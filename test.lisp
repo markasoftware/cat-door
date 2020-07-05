@@ -124,11 +124,11 @@
   (cycles 3 :s)
   (assert-inner-motor :idling))
 
-(runtest "Open inner motor on startup (sw one-way)"
+(runtest "Close inner motor on startup (sw open)"
   (set-switch-one-way)
   (set-sensor-open)
   (cycles 1000)
-  (assert-inner-motor :opening)
+  (assert-inner-motor :closing)
   (cycles 3 :s)
   (assert-inner-motor :idling))
 
@@ -233,6 +233,7 @@
 ;; + Periodic timer interrupting rewind: Wait
 ;; + Switch changes interrupting rewind: Wait for rewind to finish
 ;; + Switch changes interrupting pause between rewinds: Interrupt
+;; + major TODO: Rewind when opening outer door takes too long
 ;;
 ;; Have cli- and sei-like functions that only operate on some interrupts so, eg,
 ;; we can still get sensor interrupts while rewinding while having, eg, switch

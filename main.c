@@ -3,15 +3,17 @@
  * Released under the GNU GPL v3
  */
 
+#define F_CPU 1000000L
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <util/atomic.h>
 
 // at prescaler /1024. About 2 seconds.
-#define ACTIVE_TIMER_COMPARE 0x0800;
+#define ACTIVE_TIMER_COMPARE 0x0800
 // at prescaler /1024. About 67 seconds. TODO: look into increasing this.
-#define SLEEP_TIMER_COMPARE 0xffff;
+#define SLEEP_TIMER_COMPARE 0xffff
 
 enum pins {
 	PIN_INNER_UP_O = 0,
@@ -46,20 +48,21 @@ static void reset_then_set(unsigned char reset_pin, unsigned char set_pin) {
 	PORTA |= (1<<set_pin);
 }
 
+// start flashing control panel LED
 static void set_flash() {
 	// Start timer
 	TCCR0B = (1<<CS02) | (1<<CS00);
 }
 
+// stop flashing control panel LED
 static void clear_flash() {
 	TCCR0B = 0x00;
 }
 
-static void set_inner_active_timer() {
-	;
-}
-
-static void set_inner_sleep_timer() {
+// restart the 16 bit timer
+static void timer_until(unsigned short compare) {
+	OCR1A = 0x100;
+	TCNT1 = 0x0000;
 }
 
 // idle -> inner open
@@ -96,8 +99,7 @@ static void begin_outer_close() {
 
 static void begin_idle() {
 	clear_flash();
-	TCNT1 = 0x0000;
-	OCR1A = SLEEP_TIMER_COMPARE;
+	timer_until(SLEEP_TIMER_COMPARE);
 	state = IDLE;
 	PORTA &= ~(
 		(1<<PIN_INNER_UP_O) |
@@ -125,8 +127,7 @@ static void move_outer() {
 }
 
 static void move_inner() {
-	TCNT1 = 0x0000;
-	OCR1A = ACTIVE_TIMER_COMPARE;
+	timer_until(ACTIVE_TIMER_COMPARE);
 	if (sw_inner_open()) {
 		begin_inner_open();
 	} else {
@@ -161,14 +162,14 @@ int main() {
 	last_PINA = PINA;
 
 	// Timer 1 controls the inner door. It always has prescaler 1024 and
-	// resets on compare. The compare value will be set to the correct value in move_inner(); we set it here just so that the interrupt 
-	TCCR1B = (1<<WGM12) | (1<<CS12) | (1<<CS10);
+	// resets on compare. The compare value will be set to the correct value
+	// in move_inner().
 	TIMSK1 = (1<<OCIE1A);
+	TCCR1B = (1<<WGM12) | (1<<CS12) | (1<<CS10);
 
-	// As soon as interrupts enable, we should get a timer1 interrupt (it
-	// equals zero, the initial compare register). This will start the inner
-	// door moving, as we want.
 	sei();
+
+	move_inner();
 
 	// TODO: sleep
 	while (1);

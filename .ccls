@@ -1,3 +1,4 @@
 clang
 -I/usr/lib/avr/include
+-I/usr/avr/sys-root/include
 -D__AVR_ATtiny84__
