@@ -53,7 +53,7 @@
 
 (defsuite cat-door
   :core (make-instance 'avr-core
-                       :frequency 1000000
+                       :frequency 128000
                        :mcu :attiny84
                        ;; TODO: What path are relative pathnames relative to?
                        :firmware-path #P"/home/markasoftware/Development/cat-door/main.elf"))
@@ -147,15 +147,22 @@
   (assert-inner-motor :opening)
   (set-switch-closed)
   (cycles 1000)
+  ;; Shouldn't get interrupted
+  (assert-inner-motor :opening)
+  (cycles 3 :s)
+  ;; but, once done, it should reverse
   (assert-inner-motor :closing)
+  (cycles 3 :s)
+  ;; and, eventually, it should stop
+  (assert-inner-motor :idling)
   ;; Make sure it resets the timer to zero every time the direction changes
   (dotimes (i 10)
     (set-switch-open)
     (cycles 500 :ms)
     (set-switch-closed)
-    (cyles 500 :ms))
+    (cycles 500 :ms))
   (set-switch-open)
-  (cycles 1000)
+  (cycles 3 :s)
   (assert-inner-motor :opening)
   (cycles 3 :s)
   (assert-inner-motor :idling))
