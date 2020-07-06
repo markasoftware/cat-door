@@ -13,8 +13,9 @@ enum action {
 	ACT_OUTER,
 
 	// "close" or "open" is sw position when rewind began
-	ACT_REWIND_CLOSE_INIT, // rewind just started, sensor still OPEN
-	ACT_REWIND_CLOSE, // rewind under way, sensor MIDDLE
+	ACT_REWIND_CLOSE_INIT, // rewind just started, sensor OPEN
+	ACT_REWIND_CLOSE, // rewind under way (or just started but never was
+			  // OPEN), sensor MIDDLE
 	ACT_REWIND_OPEN, // rewind under way, sensor MIDDLE
 };
 
@@ -31,11 +32,11 @@ enum pins {
 
 struct state {
 	unsigned char action : 3;
-	bool sw_inner_open : 1;
-	bool sw_outer_closed : 1;
-	bool sens_open : 1;
-	bool sens_closed : 1;
-	bool inner_done : 1;
+	unsigned char sw_inner_open : 1;
+	unsigned char sw_outer_closed : 1;
+	unsigned char sens_open : 1;
+	unsigned char sens_closed : 1;
+	unsigned char inner_done : 1;
 };
 
 volatile struct state state = { 0 };
@@ -74,7 +75,10 @@ static void pin_inner_down() {
 
 // update switch and sensor info in state using pin information.
 static void read_pins() {
-	bool new_sw_inner_open = !!(PINA & (1<<PIN_SW_OPEN_I));
+	// avoid races
+	unsigned char pina = PINA;
+
+	bool new_sw_inner_open = !!(pina & (1<<PIN_SW_OPEN_I));
 
 	// if inner door changed
 	if (new_sw_inner_open != state.sw_inner_open) {
@@ -82,10 +86,10 @@ static void read_pins() {
 	}
 
 	state.sw_inner_open = new_sw_inner_open;
-	state.sw_outer_closed = !!(PINA & (1<<PIN_SW_CLOSED_I));
+	state.sw_outer_closed = !!(pina & (1<<PIN_SW_CLOSED_I));
 	// active low (pulled up)
-	state.sens_open = !(PINA & (1<<PIN_SENS_OPEN_I));
-	state.sens_closed = !(PINA & (1<<PIN_SENS_CLOSED_I));
+	state.sens_open = !(pina & (1<<PIN_SENS_OPEN_I));
+	state.sens_closed = !(pina & (1<<PIN_SENS_CLOSED_I));
 }
 
 ///////////////////////////
@@ -154,6 +158,20 @@ static void action_outer() {
 	OCR1B = TCNT1 + 0x0400;
 }
 
+static void auto_action_motion() {
+	if (state.inner_done) {
+		if (outer_done_p()) {
+			// TODO: this will the periodic timer to be set too far
+			// ahead sometimes?
+			action_idle();
+		} else {
+			action_outer();
+		}
+	} else {
+		action_inner();
+	}
+}
+
 static void action_rewind_close_init() {
 	ensure_flshgnd();
 	state.action = ACT_REWIND_CLOSE_INIT;
@@ -183,29 +201,17 @@ static void action_rewind_open() {
 static void act() {
 	switch (state.action) {
 	case ACT_IDLE:
-		if (state.inner_done) {
-			if (!outer_done_p()) {
-				action_outer();
-			}
-			// else, we're idle and nothing needs to change!
-		} else {
-			action_inner();
-		}
+		auto_action_motion();
 		break;
 	case ACT_INNER:
-		if (state.inner_done) {
-			action_idle();
-			act();
-		}
+		auto_action_motion();
 		// if direction was changed, just don't give a shit.
 		break;
 	case ACT_OUTER:
 		if (outer_done_p()) {
-			action_idle();
-			// in case switch changed affecting inner door while
-			// outer door was in motion.
-			act();
-		} else if (close_rewind_p()) {
+			auto_action_motion();
+			// TODO: make close_rewind_p not shitty
+		} else if (false && close_rewind_p()) {
 			action_rewind_close_init();
 		}
 		break;
@@ -217,8 +223,7 @@ static void act() {
 	case ACT_REWIND_CLOSE:
 		if (state.sens_closed) {
 			// rewind finished gracefully
-			action_idle();
-			act();
+			auto_action_motion();
 		} else if (state.sens_open) {
 			// got stuck on the way down during rewind, so it came
 			// back up the other side. For now, just lower
@@ -231,8 +236,7 @@ static void act() {
 	case ACT_REWIND_OPEN:
 		if (state.sens_closed) {
 			// rewind finished
-			action_idle();
-			act();
+			auto_action_motion();
 		} else if (state.sens_open) {
 			// we rewound all the way? means it got stuck lowering
 			// while rewinding.
@@ -258,7 +262,11 @@ static void act_timer() {
 	case ACT_OUTER:
 		// Start rewind
 		if (state.sw_outer_closed) {
-			action_rewind_close_init();
+			if (state.sens_open) {
+				action_rewind_close_init();
+			} else {
+				action_rewind_close();
+			}
 		} else {
 			action_rewind_open();
 		}
@@ -298,7 +306,6 @@ int main() {
 		(1<<PIN_SENS_CLOSED_I);
 	GIMSK = (1<<PCIE0);
 	_delay_ms(5);
-	read_pins();
 
 	// timer 1 runs continuously, used for debouncing and inner door timing.
 	TCCR1B = (1<<CS12) | (1<<CS10);
@@ -307,6 +314,7 @@ int main() {
 	OCR1B = 255;
 	TIMSK1 = (1<<OCIE1B);
 
+	read_pins();
 	act();
 
 	sei();

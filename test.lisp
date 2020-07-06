@@ -71,14 +71,14 @@
   (set-switch-one-way)
   (set-sensor-closed)
   (cycles 3 :s)
-  (assert (flashing-p))
+  ;(assert (flashing-p))
   (assert-outer-motor :opening))
 
 (runtest "Close outer motor (sw closed)"
   (set-switch-closed)
   (set-sensor-open)
   (cycles 3 :s)
-  (assert (flashing-p))
+  ;(assert (flashing-p))
   (assert-outer-motor :closing))
 
 (runtest "Toggle outer motor as things change"
@@ -88,32 +88,34 @@
   (assert-outer-motor :closing)
 
   (set-sensor-closed)
-  (cycles 1000)
+  (cycles 50 :ms)
   (assert-outer-motor :idling)
-  (assert (not (flashing-p)))
+  ;(assert (not (flashing-p)))
 
   (set-sensor-open)
-  (cycles 1000)
-  (assert-outer-motor :idling)
-  (assert (not (flashing-p)))
+  (cycles 50 :ms)
+  (assert-outer-motor :closing)
+  ;(assert (not (flashing-p)))
 
   (set-sensor-closed)
+  (cycles 50 :ms)
+  (assert-outer-motor :idling)
+
   (set-switch-one-way)
-  ;; inner door triggered when switch open -> one way
-  (cycles 3 :s)
+  (cycles 50 :ms)
   (assert-outer-motor :opening)
 
   (set-sensor-floating)
-  (cycles 1000)
+  (cycles 50 :ms)
   (assert-outer-motor :opening)
 
-  ;; one way -> closed does not trigger inner
-  (set-switch-closed)
-  (cycles 1000)
-  (assert-outer-motor :closing)
+  ;; one-way -> open triggers inner door
+  (set-switch-open)
+  (cycles 50 :ms)
+  (assert-outer-motor :opening)
 
-  (set-sensor-closed)
-  (cycles 1000)
+  (set-sensor-open)
+  (cycles 50 :ms)
   (assert-outer-motor :idling))
 
 (runtest "Open inner motor on startup (sw open)"
@@ -170,22 +172,24 @@
 (runtest "Does both inner and outer door operations on startup"
   (set-switch-open)
   (set-sensor-closed)
-  (cycles 1000)
+  (cycles 50 :ms)
   (assert-inner-motor :opening)
   (assert-outer-motor :idling)
   (cycles 3 :s)
   (assert-inner-motor :idling)
   (assert-outer-motor :opening)
   (set-sensor-open)
-  (cycles 1000)
+  (cycles 50 :ms)
   (assert-inner-motor :idling)
   (assert-outer-motor :idling))
 
 (runtest "Re-opens the inner door every so often"
+  (cycles 1000)
   (set-switch-open)
   (set-sensor-open)
-  (cycles 5 :s)
+  (cycles 3 :s)
   (assert-inner-motor :idling)
+  (assert-outer-motor :idling)
 
   (assert
    (cycles-between (:start '(1 :m) :stop '(5 :m) :skip '(100 :ms))
@@ -193,18 +197,16 @@
   (cycles 3 :s)
   (assert-inner-motor :idling))
 
-(runtest "Rewinds once"
+(runtest "Close-Rewind based on timeout"
   (set-switch-closed)
   (set-sensor-open)
   (cycles 3 :s)
   (assert-outer-motor :closing)
   (set-sensor-floating)
-  (cycles 1000)
-  (set-sensor-open)
-  (cycles 1000)
+  (cycles 10 :s)
   (assert-outer-motor :opening)
   (set-sensor-closed)
-  (cycles 1000)
+  (cycles 50 :ms)
   (assert-outer-motor :idling))
 
 ;; TODO: do we actually /want/ to rewind multiple times?
