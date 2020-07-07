@@ -13,10 +13,10 @@ enum action {
 	ACT_OUTER,
 
 	// "close" or "open" is sw position when rewind began
-	ACT_REWIND_CLOSE_INIT, // rewind just started, sensor OPEN
-	ACT_REWIND_CLOSE, // rewind under way (or just started but never was
-			  // OPEN), sensor MIDDLE
-	ACT_REWIND_OPEN, // rewind under way, sensor MIDDLE
+	ACT_REWIND_CLOSE,
+	ACT_REWIND_OPEN,
+
+	ACT_COOLDOWN,
 };
 
 enum pins {
@@ -100,11 +100,6 @@ static bool outer_done_p() {
 		(!state.sw_outer_closed && state.sens_open);
 }
 
-// if currently closing outer door, determine if we must rewind
-static bool close_rewind_p() {
-	return state.sw_outer_closed && state.sens_open;
-}
-
 static void ensure_flshgnd() {
 	TCCR0B = (1<<CS02);
 	TCCR0A = (1<<COM0A0);
@@ -161,8 +156,6 @@ static void action_outer() {
 static void auto_action_motion() {
 	if (state.inner_done) {
 		if (outer_done_p()) {
-			// TODO: this will the periodic timer to be set too far
-			// ahead sometimes?
 			action_idle();
 		} else {
 			action_outer();
@@ -172,16 +165,9 @@ static void auto_action_motion() {
 	}
 }
 
-static void action_rewind_close_init() {
-	ensure_flshgnd();
-	state.action = ACT_REWIND_CLOSE_INIT;
-	pin_outer_up();
-	OCR1B = TCNT1 + 0x0800;
-}
-
 static void action_rewind_close() {
 	ensure_flshgnd();
-	state.action = ACT_REWIND_CLOSE_INIT;
+	state.action = ACT_REWIND_CLOSE;
 	// should already be set, but for consistency...
 	pin_outer_up();
 	OCR1B = TCNT1 + 0x0800;
@@ -192,6 +178,14 @@ static void action_rewind_open() {
 	state.action = ACT_REWIND_OPEN;
 	pin_outer_down();
 	OCR1B = TCNT1 + 0x0800;
+}
+
+static void action_cooldown() {
+	ensure_flshgnd();
+	state.action = ACT_COOLDOWN;
+	pin_idle();
+	// about a minute
+	OCR1B = TCNT1 + 0x2000;
 }
 
 ///////////////////////////////
@@ -210,14 +204,6 @@ static void act() {
 	case ACT_OUTER:
 		if (outer_done_p()) {
 			auto_action_motion();
-			// TODO: make close_rewind_p not shitty
-		} else if (false && close_rewind_p()) {
-			action_rewind_close_init();
-		}
-		break;
-	case ACT_REWIND_CLOSE_INIT:
-		if (!state.sens_open) {
-			action_rewind_close();
 		}
 		break;
 	case ACT_REWIND_CLOSE:
@@ -226,22 +212,25 @@ static void act() {
 			auto_action_motion();
 		} else if (state.sens_open) {
 			// got stuck on the way down during rewind, so it came
-			// back up the other side. For now, just lower
-			// immediately -- but if there's a serious blockage,
-			// this could cause a continuous loop, maybe damaging
-			// the motor? TODO: some delay
-			action_outer();
+			// back up the other (normal spooling) side. Assume a
+			// serious blockage.
+			action_cooldown();
 		}
 		break;
 	case ACT_REWIND_OPEN:
-		if (state.sens_closed) {
-			// rewind finished
+		if (state.sens_closed || state.sens_open) {
+			// rewind finished OR the door got caught while
+			// rewinding (never reached the bottom) and is now open
+			// but spooled the wrong direction, which will be
+			// corrected when the door is next opened.
+
+			// This could cause a loop of activating the motor in
+			// case of a serious blockage.
 			auto_action_motion();
-		} else if (state.sens_open) {
-			// we rewound all the way? means it got stuck lowering
-			// while rewinding.
-			action_rewind_close_init();
 		}
+		break;
+	case ACT_COOLDOWN:
+		// do nothing, we're waiting for the timer.
 		break;
 	}
 }
@@ -252,30 +241,30 @@ static void act_timer() {
 	case ACT_IDLE:
 		// Inner door periodic
 		state.inner_done = false;
-		act();
+		auto_action_motion();
 		break;
 	case ACT_INNER:
 		// Stop moving inner door
 		state.inner_done = true;
-		act();
+		auto_action_motion();
 		break;
 	case ACT_OUTER:
 		// Start rewind
 		if (state.sw_outer_closed) {
-			if (state.sens_open) {
-				action_rewind_close_init();
-			} else {
-				action_rewind_close();
-			}
+			action_rewind_close();
 		} else {
 			action_rewind_open();
 		}
 		break;
 
 	case ACT_REWIND_OPEN:
-	case ACT_REWIND_CLOSE_INIT:
 	case ACT_REWIND_CLOSE:
-		// rewind took too long. TODO
+		// rewind took too long
+		action_cooldown();
+		break;
+	case ACT_COOLDOWN:
+		// cooldown complete
+		auto_action_motion();
 		break;
 	}
 }
