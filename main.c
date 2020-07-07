@@ -198,11 +198,11 @@ static void act() {
 		auto_action_motion();
 		break;
 	case ACT_INNER:
-		auto_action_motion();
-		// if direction was changed, just don't give a shit.
+		// no interrupting inner motor, let timer handle it.
 		break;
 	case ACT_OUTER:
-		if (outer_done_p()) {
+		// avoid interruptions, for good measure.
+		if (state.sens_open || state.sens_closed) {
 			auto_action_motion();
 		}
 		break;
@@ -242,10 +242,15 @@ static void act_timer() {
 		// Inner door periodic
 		state.inner_done = false;
 		auto_action_motion();
+		// special override
+		clear_flshgnd();
 		break;
 	case ACT_INNER:
-		// Stop moving inner door
-		state.inner_done = true;
+		// it's only done if the direction was not changed while it was
+		// in motion.
+		if (!!(PORTA & (1<<PIN_INNER_UP_O)) == state.sw_inner_open) {
+			state.inner_done = true;
+		}
 		auto_action_motion();
 		break;
 	case ACT_OUTER:
